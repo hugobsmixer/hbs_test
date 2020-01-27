@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Test Transfer</title>
+        <link href="css/styles.css" rel="stylesheet" />
+        <link href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" rel="stylesheet" crossorigin="anonymous" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
+    </head>
+    <body class="sb-nav-fixed">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+            <a class="navbar-brand" href="home.html">Home</a>
+            <a class="navbar-brand" href="transfer.html">Transfer</a>
+            <!-- Navbar-->
+            <ul class="navbar-nav ml-auto mr-0 mr-md-3 my-2 my-md-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="userDropdown" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="login.html" id="btnLogout">Logout</a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+    	<div class="container-fluid" style="margin-top: 100px;">
+            <div class="row">
+                <h2>Welcome to your online banking <span id="lblUsername"></span></h2>
+            </div>
+    		<div class="row">
+    			<div class="col-md-4">
+                    <canvas id="myPieChart" width="100%" height="50"></canvas>
+    				<h2>Transactions History</h2>
+                    <p>
+                        Cras justo odio, dapibus ac facilisis in, egestas eget quam. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Aenean lacinia bibendum nulla sed consectetur. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.
+                    </p>
+    			</div>
+                <div class="col-md-4">
+                    <img src="#" class="img-thumbnail">
+                    <h2>Main Expenses</h2>
+                    <p>
+                        Cras justo odio, dapibus ac facilisis in, egestas eget quam. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Aenean lacinia bibendum nulla sed consectetur. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h2>Current Balance</h2>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Acount No</th>
+                                    <th>Balance</th>
+                                    <th>Date of Last Transfer</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableRecords">
+                            </tbody>
+                        </table>                
+                    </div> 
+                </div>
+    		</div>
+    	</div>
+    </div>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/vue"></script>
+		<script>
+          var user=localStorage.getItem("username");
+          $('#lblUsername').text(user);
+
+		  loadBalance();
+          var amounts = [];
+          var accounts = [];
+          function loadBalance(){
+                // CHART
+                var balance;
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    url: 'balance.json',
+                    success: function(response) {
+                        balance=response.balance;
+                        for(var i = 0; i<balance.length; i++){
+                            amounts.push(balance[i].balance.value);
+                            accounts.push(balance[i].account);
+                            loadChart(amounts, accounts);
+                        }
+                    },
+                    error: function(xhr, status) {
+                        console.log("No se ha podido obtener la información");
+                    }
+                });
+            }
+
+            function loadChart(amounts, accounts){
+                var ctx = document.getElementById("myPieChart");
+                var myPieChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                    labels: accounts,
+                    datasets: [{
+                    data: amounts,
+                          backgroundColor: ['#007bff', '#dc3545', '#ffc107', '#28a745'],
+                        }],
+                    },
+                });        
+            }
+
+            getHistory();
+            function getHistory() {
+                var history;
+                // Petición
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    url: 'history.json',
+                    success: function(response) {
+                        history=response[0].transactions;
+                        var accountsSelect = $('#accountsSelect');
+                        console.log(history);
+                        $.each(history, function(i, item) {
+                            console.log(item.fromAccount);
+                            var $tr = $('<tr>').append(
+                                $('<td>').text(item.fromAccount),
+                                $('<td>').text(item.amount.currency+item.amount.value),
+                                $('<td>').text(item.sentAt)
+                            ).appendTo('#tableRecords');
+                        });
+                    },
+                    error: function(xhr, status) {
+                        console.log("No se ha podido obtener la información");
+                    }
+                });
+            }
+
+            $('#btnLogout').on('click', function(){
+                localStorage.removeItem("username");
+            });
+		</script>
+
+    </body>
+</html>

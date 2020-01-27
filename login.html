@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Login</title>
+        <link href="css/styles.css" rel="stylesheet" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
+    </head>
+    <body class="bg-default">
+        <div id="layoutAuthentication">
+            <div id="layoutAuthentication_content">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-5">
+                            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                                <div class="card-header"><h3 class="text-center font-weight-light my-4">Login</h3></div>
+                                <div class="card-body">
+                                    <form 
+                                    id="app"
+                                    @submit="validar"
+                                    action="home.html"
+                                    method="post">
+                                    <p v-if="errors.length">
+                                      <b>Campos obligatorios:</b>
+                                      <ul>
+                                        <li v-for="error in errors">{{ error }}</li>
+                                    </ul>
+                                    </p>
+                                    <p>
+                                    <label for="username">Username</label>
+                                    <input
+                                    id="username"
+                                    v-model="username"
+                                    type="text"
+                                    name="username"
+                                    minlength="8"
+                                    maxlength="20">
+                                    </p>
+                                    <p>
+                                    <label for="password">Password</label>
+                                    <input
+                                    id="password"
+                                    v-model="password"
+                                    type="password"
+                                    name="password"
+                                    minlength="8"
+                                    maxlength="20">
+                                    </p>
+                                    <input
+                                    type="submit"
+                                    value="Entrar">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/vue"></script>
+        <script>
+          var app = new Vue({
+            el: '#app',
+            data: {
+              errors: [],
+              username: null,
+              password: null
+            },
+            methods:{
+              validar: function (e) {
+                if (this.username && this.password) {
+                    localStorage.setItem("username", $('#username').val());
+                    return true;
+                }
+                this.errors = [];
+                if (!this.username) {
+                  this.errors.push('Por favor introduce tu username.');
+                }
+                if (!this.password) {
+                  this.errors.push('Por favor introduce tu contraseña.');
+                }
+                e.preventDefault();
+              }
+            }
+          });
+        </script>
+    </body>
+</html>

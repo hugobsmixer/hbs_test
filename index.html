@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="refresh" content="0;url=login.html">
+    <title>Test</title>
+    <script language="javascript">
+    	var token = localStorage.getItem("token");
+    	if(token==null){
+    		window.location.href = "login.html"	
+    	}
+    </script>
+</head>
+
+<body>
+    <a href="login.html">Iniciar Sesión</a>
+</body>
+
+</html>

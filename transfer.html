@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Test</title>
+        <link href="css/styles.css" rel="stylesheet" />
+        <link href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" rel="stylesheet" crossorigin="anonymous" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
+    </head>
+    <body class="sb-nav-fixed">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+            <a class="navbar-brand" href="home.html">Home</a>
+            <a class="navbar-brand" href="transfer.html">Transfer</a>
+            <!-- Navbar-->
+            <ul class="navbar-nav ml-auto mr-0 mr-md-3 my-2 my-md-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="userDropdown" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="login.html" id="btnLogout">Logout</a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+    	<div class="container-fluid" style="margin-top: 100px;">
+    		<div class="row">
+    			<div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h2>Create new Transfer</h2>
+                            <form 
+                            id="formTransaction"
+                            action="">
+                                <label for="accountOriginTransaction">Select origin account</label>
+                                <select id="accountOriginTransaction">
+                                    <option selected disabled value="0">Seleccionar...</option>
+                                </select>
+
+                                <label for="destinationAccount">Destination account</label>
+                                <input
+                                id="destinationAccount"
+                                type="number"
+                                max="9999999">
+
+                                <label for="amountTransaction">Amount</label>
+                                <input
+                                id="amountTransaction"
+                                type="number">
+                                <input
+                                type="button"
+                                id="btnSendTransaction"
+                                value="Transferir" class="btn-primary">
+                                <input
+                                type="button"
+                                id="btnCancelTransaction"
+                                value="Cancelar">
+                            </form>
+                        </div>
+                    </div>
+    			</div>
+                <div class="col-md-4">
+                    <h2>Transactions History</h2>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Origin Account</th>
+                                    <th>Destination Account</th>
+                                    <th>Transfer Date</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableRecords">
+                            </tbody>
+                        </table>                
+                    </div> 
+                </div>
+                <div class="col-md-4">
+                    <canvas id="myPieChart" width="100%" height="50"></canvas>
+                </div>
+    		</div>
+    	</div>
+    </div>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/vue"></script>
+		<script>
+            getAccounts();
+            function getAccounts() {
+                var cuentas;
+                // Petición
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    url: 'myaccounts.json',
+                    success: function(response) {
+                        cuentas=response;
+                        var accountsSelect = $('#accountOriginTransaction');
+                        $.each(cuentas, function (id, registro) {
+                            accountsSelect.append($('<option></option>').attr('value', registro.accountId).text(registro.accountOrigin));
+                        });
+                    },
+                    error: function(xhr, status) {
+                        console.log("No se ha podido obtener la información");
+                    }
+                });
+            }
+
+            getHistory();
+            function getHistory() {
+                var history;
+                // Petición
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    url: 'history.json',
+                    success: function(response) {
+                        history=response[0].transactions;
+                        var accountsSelect = $('#accountsSelect');
+                        console.log(history);
+                        $.each(history, function(i, item) {
+                            console.log(item.fromAccount);
+                            var $tr = $('<tr>').append(
+                                $('<td>').text(item.fromAccount),
+                                $('<td>').text(item.toAccount),
+                                $('<td>').text(item.sentAt),
+                                $('<td>').text(item.amount.currency+item.amount.value),
+                            ).appendTo('#tableRecords');
+                        });
+                    },
+                    error: function(xhr, status) {
+                        console.log("No se ha podido obtener la información");
+                    }
+                });
+            }
+
+            $('#btnSendTransaction').on('click', function(){
+                sendTransaction();
+            });
+            function sendTransaction() {
+                var transfer = new Object();
+                transfer.fromAccount = $('#accountOriginTransaction').val();
+                transfer.toAccount =  $('#destinationAccount').val();;
+                transfer.amount =  $('#amountTransaction').val();
+                if(transfer.amount<100000){
+                    var myString = JSON.stringify(transfer);
+                    amounts.push(transfer.amount);
+                    accounts.push(transfer.toAccount);
+                    loadChart(amounts,accounts);
+                    alert('Transacción correcta');
+                    var $tr = $('<tr>').append(
+                                $('<td>').text(transfer.fromAccount),
+                                $('<td>').text(transfer.toAccount),
+                                $('<td>').text(Date.now()),
+                                $('<td>').text(transfer.amount)
+                            ).appendTo('#tableRecords');
+                    clearForm();
+                    // Petición
+                    $.ajax({
+                        type: "POST",
+                        dataType: "json",
+                        url: 'api/post',
+                        success: function(response) {
+                            alert('Petición POST correcta');
+                        },
+                        error: function(xhr, status) {
+                            console.log("No se pudo guardar la información");
+                        }
+                    });
+                }
+                else{
+                    alert('La transacción supera la cantidad permitida (100,000)');
+                }
+            }
+
+            $("#btnCancelTransaction").click(function(event) {
+               clearForm();
+            });
+
+            function clearForm(){
+                $("#formTransaction")[0].reset();
+            }
+
+            $('#destinationAccount').on('keyup', function(){
+                if (this.value.length > 8)
+                    this.value = this.value.slice(0,8);
+            });
+
+            $('#amountTransaction').on('keyup', function(){
+                if (this.value.length > 6) 
+                    this.value = this.value.slice(0,6);
+            });
+
+            var amounts = [];
+            var accounts = [];
+            loadBalance();
+            function loadBalance(){
+                // CHART
+                var balance;
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    url: 'balance.json',
+                    success: function(response) {
+                        balance=response.balance;
+                        for(var i = 0; i<balance.length; i++){
+                            amounts.push(balance[i].balance.value);
+                            accounts.push(balance[i].account);
+                            loadChart(amounts, accounts);
+                        }
+                    },
+                    error: function(xhr, status) {
+                        console.log("No se ha podido obtener la información");
+                    }
+                });
+            }
+
+            function loadChart(amounts, accounts){
+                var ctx = document.getElementById("myPieChart");
+                var myPieChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                    labels: accounts,
+                    datasets: [{
+                    data: amounts,
+                          backgroundColor: ['#007bff', '#dc3545', '#ffc107', '#28a745'],
+                        }],
+                    },
+                });        
+            }
+            
+            $('#btnLogout').on('click', function(){
+                localStorage.removeItem("username");
+            });
+		</script>
+
+    </body>
+</html>
